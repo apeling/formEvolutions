@@ -1,0 +1,52 @@
+@using CommunityAssessor.Web.Utilities
+@using Newtonsoft.Json
+@using System.Linq
+@model CommunityAssessor.Web.Models.AssessmentModel
+
+@{
+    var serializedResult = GeneralExtensions.SerializeToJson(Model);
+    var fireDepartmentsSorted = GeneralExtensions.SerializeToJson(Model.FireProtectionDistrictDictionary.ToArray());
+}
+
+@{
+    if (Model.AssessmentId > 0)
+    {
+        <h1>Update Assessment</h1>
+    }
+    else
+    {
+        <h1>New Assessment</h1>
+    }
+}
+
+<div class="page-property-name">@Model.CommunityName (@Model.ProjectName)</div>
+<form id="assessment-form" class="form-wrapper">
+    @{var isFirst = true;}
+    @foreach (var category in Model.HazardCategoryList)
+    {
+        Html.RenderPartial("Partials/_AssessmentCategory", Model, new ViewDataDictionary(this.ViewData) { { "category", category }, { "isFirst", isFirst } });
+        isFirst = false;
+    }
+    @Html.Partial("Partials/_PhotoFields", Model)
+    @Html.Partial("Partials/_RatingsFields", Model)
+</form>
+<div class="page-buttons row">
+    <div id="prev-button" class="col-6"></div>
+    <div id="next-button" class="col-6"></div>
+</div>
+<script>
+    var oModel = @Html.Raw(serializedResult);
+    oModel.pages = @Html.Raw(JsonConvert.SerializeObject(Model.HazardCategoryList.Select(hc => hc.Name).ToArray().Concat(new[] { "photo", "ratings" })));
+
+    this.tg = this.tg || {};
+    this.tg.ca = this.tg.ca || {};
+
+    this.tg.ca.fireDeptsSorted = @Html.Raw(fireDepartmentsSorted);
+
+    (function () {
+            var x = document.getElementsByClassName("view");
+
+            x[0].className += " extended-view";
+        }
+    )();
+</script>

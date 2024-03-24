@@ -1,0 +1,77 @@
+@using CommunityAssessor.Databases.Cap.Entities
+@model CommunityAssessor.Web.Models.AssessmentModel
+
+<div id="@(((HazardCategoryModel)this.ViewData["category"]).Name)Fields"
+  class="form-section @(((bool)this.ViewData["isFirst"]) ? "active-page" : "")">
+
+  @if (((HazardCategoryModel)this.ViewData["category"]).Name == "CommunityDetails")
+
+  {
+    <div class="page-properties row">
+      @* <div class="page-property-name row">@Model.CommunityName (@Model.ProjectName)</div> *@
+      <div class="page-property-assess row">
+        <span class="prefix">City/County:</span><span>
+          @if (@Model.City != "")
+          {
+            <text>@Model.City, </text>
+          }@Model.County
+        </span>
+      </div>
+      <div class="page-property-assess row">
+        <span class="prefix">Lat/Long:</span><span id="lat-long-text">@Model.LongLat</span>
+      </div>
+      <div class="page-property-assess row">
+        <span class="prefix">Community Area:</span><span>@String.Format("{0:#,##0.##}", Model.GisAcres) acres</span>
+      </div>
+    </div>
+  }
+  @foreach (var classGroup in ((HazardCategoryModel)this.ViewData["category"]).HazardClasses.GroupBy(hc =>
+  hc.Row).OrderBy(hc => hc.Key))
+
+  {
+    <div class="row">
+      @foreach (var hazardClass in classGroup.OrderBy(cg => cg.Col))
+
+      {
+        <div class="col-6 field">
+          <div class="row">
+            <label class="label" for="@hazardClass.Name">@hazardClass.Description:</label>
+            <i class="req-icon fa fa-asterisk"></i>
+          </div>
+          @if (hazardClass.Type == "datetime")
+
+          {
+            <input class="col-12 input" name="@hazardClass.Name" placeholder="Click to select a date" id="@hazardClass.Name">
+          }
+
+          else if (hazardClass.Type == "text")
+
+          {
+            <input type="number" class="col-12 input" name="@hazardClass.Name" id="@hazardClass.Name"
+              oninput="this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');"
+              onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57"></input>
+          }
+
+          else if (hazardClass.Type == "fireDepartment")
+
+          {
+            <div class="col-12 input sdd" name="FireProtectionDistrictId" id="FireProtectionDistrictId"></div>
+          }
+
+          else if (hazardClass.Type == "lookup")
+
+          {
+            <select class="col-12 input" name="@hazardClass.Name" id="@hazardClass.Name">
+              <option value="null"> * Select Type * </option>
+              @foreach (var item in hazardClass.HazardConditions)
+
+              {
+                <option value="@item.Name">@item.Name</option>
+              }
+            </select>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
